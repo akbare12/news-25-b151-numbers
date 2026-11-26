@@ -233,7 +233,7 @@ TIMELINE = [
     ("14:30", "TARIFF ORDER SIGNED"),
     ("17:45", "GAZA STRIKE REPORTED"),
     ("20:10", "BOGOR RESCUE UPDATE"),
-    ("22:30", "WALL ST CLOSES"),
+    ("22:30", "WALL ST CLOSE"),
 ]
 
 STRIP = [
@@ -289,7 +289,7 @@ PINS = [
     (17, 77, 29, "NEW DELHI", 10, 4, 77, 29),
     (23, 13, 52, "BERLIN", 10, -16, 15, 56),
     (26, -2, 39, "VALENCIA", -64, 2, -2, 41),
-    (45, 35, 32, "TEL AVIV", 10, -16, 41, 36),
+    (45, 35, 32, "TEL AVIV", 10, -16, 44, 37),
     (50, 121, 15, "MANILA", 10, 10, 121, 15),
 ]
 
@@ -351,6 +351,11 @@ def draw_timeline(draw):
         lw = tlen(draw, label, lf)
         w = max(tw, lw)
         check("tl%d-fit" % i, w <= 104, "w=%.1f" % w)
+        # clamp so the centred time+label never leaves the strip box:
+        # item 9 used to run past the right canvas edge (right=1040.1)
+        cx = min(max(cx, M + w / 2 + 2), (W - M) - w / 2 - 2)
+        check("tl-edge-%d" % i, M <= cx - w / 2 and cx + w / 2 <= W - M,
+              "left=%.1f right=%.1f" % (cx - w / 2, cx + w / 2))
         draw.ellipse([cx - 2, y0 + 3, cx + 2, y0 + 7], fill=RED)
         draw.text((cx - tw / 2, y0 + 9), t, font=tf, fill=INK)
         draw.text((cx - lw / 2, y0 + 20), label, font=lf, fill=GREY)
@@ -360,6 +365,10 @@ def draw_timeline(draw):
             check("tl-overlap-%d-%d" % (i, j),
                   not bbox_overlap(boxes[i], boxes[j]),
                   "boxes %s %s" % (boxes[i], boxes[j]))
+    check("tl-last-right", boxes[-1][2] <= W,
+          "right=%.1f" % boxes[-1][2])
+    check("tl-first-left", boxes[0][0] >= 0,
+          "left=%.1f" % boxes[0][0])
 
 
 def draw_heroes(draw):
